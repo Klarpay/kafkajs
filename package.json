@@ -74,7 +74,11 @@
     "typescript": "^3.8.3",
     "uuid": "^3.3.2"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@aws-sdk/client-sts": "^3.110.0",
+    "@aws-sdk/credential-provider-node": "^3.110.0",
+    "@aws-sdk/signature-v4": "^3.110.0"
+  },
   "lint-staged": {
     "*.js": [
       "prettier --write",

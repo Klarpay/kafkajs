@@ -50,9 +50,9 @@ type SASLMechanismOptionsMap = {
   'scram-sha-256': { username: string; password: string }
   'scram-sha-512': { username: string; password: string }
   aws: {
-    authorizationIdentity: string
-    accessKeyId: string
-    secretAccessKey: string
+    region?: string
+    accessKeyId?: string
+    secretAccessKey?: string
     sessionToken?: string
   }
   oauthbearer: { oauthBearerProvider: () => Promise<OauthbearerProviderResponse> }

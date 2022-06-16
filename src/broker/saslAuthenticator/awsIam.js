@@ -1,5 +1,7 @@
 const awsIam = require('../../protocol/sasl/awsIam')
-const { KafkaJSSASLAuthenticationError } = require('../../errors')
+const {
+  AuthenticationPayloadCreator,
+} = require('./../../protocol/sasl/awsIam/authenticationPayloadCreator')
 
 module.exports = class AWSIAMAuthenticator {
   constructor(connection, logger, saslAuthenticate) {
@@ -9,33 +11,26 @@ module.exports = class AWSIAMAuthenticator {
   }
 
   async authenticate() {
-    const { sasl } = this.connection
-    if (!sasl.authorizationIdentity) {
-      throw new KafkaJSSASLAuthenticationError('SASL AWS-IAM: Missing authorizationIdentity')
-    }
-    if (!sasl.accessKeyId) {
-      throw new KafkaJSSASLAuthenticationError('SASL AWS-IAM: Missing accessKeyId')
-    }
-    if (!sasl.secretAccessKey) {
-      throw new KafkaJSSASLAuthenticationError('SASL AWS-IAM: Missing secretAccessKey')
-    }
-    if (!sasl.sessionToken) {
-      sasl.sessionToken = ''
-    }
-
-    const request = awsIam.request(sasl)
-    const response = awsIam.response
     const { host, port } = this.connection
     const broker = `${host}:${port}`
+    const payloadFactory = new AuthenticationPayloadCreator({
+      region: this.connection.sasl.region || process.env.AWS_REGION,
+    })
 
     try {
-      this.logger.debug('Authenticate with SASL AWS-IAM', { broker })
-      await this.saslAuthenticate({ request, response })
-      this.logger.debug('SASL AWS-IAM authentication successful', { broker })
-    } catch (e) {
-      const error = new KafkaJSSASLAuthenticationError(
-        `SASL AWS-IAM authentication failed: ${e.message}`
-      )
+      const payload = await payloadFactory.create({ brokerHost: host })
+      const authenticateResponse = await this.saslAuthenticate({
+        request: awsIam.request(payload),
+        response: awsIam.response,
+      })
+      this.logger.info('Authentication response', { authenticateResponse })
+
+      if (!authenticateResponse.version || !authenticateResponse) {
+        throw new Error('Invalid response from broker')
+      }
+
+      this.logger.info('SASL Simon authentication successful', { broker })
+    } catch (error) {
       this.logger.error(error.message, { broker })
       throw error
     }

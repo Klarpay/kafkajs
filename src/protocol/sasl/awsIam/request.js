@@ -1,11 +1,12 @@
-const Encoder = require('../../encoder')
+const INT32_SIZE = 4
 
-const US_ASCII_NULL_CHAR = '\u0000'
-
-module.exports = ({ authorizationIdentity, accessKeyId, secretAccessKey, sessionToken = '' }) => ({
+module.exports = payload => ({
   encode: async () => {
-    return new Encoder().writeBytes(
-      [authorizationIdentity, accessKeyId, secretAccessKey, sessionToken].join(US_ASCII_NULL_CHAR)
-    )
+    const stringifiedPayload = JSON.stringify(payload)
+    const byteLength = Buffer.byteLength(stringifiedPayload, 'utf8')
+    const buf = Buffer.alloc(INT32_SIZE + byteLength)
+    buf.writeUInt32BE(byteLength, 0)
+    buf.write(stringifiedPayload, INT32_SIZE, byteLength, 'utf8')
+    return buf
   },
 })
