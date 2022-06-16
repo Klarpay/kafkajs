@@ -1,4 +1,5 @@
 const awsIam = require('../../protocol/sasl/awsIam')
+const { KafkaJSSASLAuthenticationError } = require('../../errors')
 const {
   AuthenticationPayloadCreator,
 } = require('./../../protocol/sasl/awsIam/authenticationPayloadCreator')
@@ -17,11 +18,16 @@ module.exports = class AWSIAMAuthenticator {
       region: this.connection.sasl.region || process.env.AWS_REGION,
     })
 
+    if (!this.connection.sasl.region && !process.env.AWS_REGION) {
+      throw new KafkaJSSASLAuthenticationError('SASL AWS-IAM: Missing AWS region')
+    }
+
     try {
       const payload = await payloadFactory.create({ brokerHost: host })
       const authenticateResponse = await this.saslAuthenticate({
         request: awsIam.request(payload),
         response: awsIam.response,
+        authExpectResponse: true,
       })
       this.logger.info('Authentication response', { authenticateResponse })
 

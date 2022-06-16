@@ -11,7 +11,7 @@ const AUTHENTICATORS = {
   PLAIN: PlainAuthenticator,
   'SCRAM-SHA-256': SCRAM256Authenticator,
   'SCRAM-SHA-512': SCRAM512Authenticator,
-  AWS: AWSIAMAuthenticator,
+  AWS_MSK_IAM: AWSIAMAuthenticator,
   OAUTHBEARER: OAuthBearerAuthenticator,
 }
 

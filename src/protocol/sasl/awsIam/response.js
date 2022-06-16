@@ -1,9 +1,8 @@
-const INT32_SIZE = 4
+const Decoder = require('../../decoder')
 
 module.exports = {
   decode: rawData => {
-    const byteLength = rawData.readInt32BE(0)
-    return rawData.slice(INT32_SIZE, INT32_SIZE + byteLength)
+    return new Decoder(rawData).readBytes()
   },
 
   parse: data => {
